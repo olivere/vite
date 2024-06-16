@@ -3,7 +3,7 @@
 > **Note**
 > This library is still a work in progress and may not be stable or fully functional. Use it at your own risk.
 
-This library implements a [Vite backend integration](https://vitejs.dev/guide/backend-integration.html) for Go.
+This library implements a [Vite backend integration](https://vitejs.dev/guide/backend-integration.html) for Go. Please follow the guidelines there to configure your Vite project, i.e. `vite.config.(js|ts)`. E.g. you need to make sure that the `manifest.json` is being generated for production.
 
 The integration is done by a HTTP handler, implementing `http.Handler`. The handler has two modes: Development and production.
 
