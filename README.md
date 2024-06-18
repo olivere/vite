@@ -14,7 +14,12 @@ Example:
 ```go
 // Serve in development mode (assuming your frontend code is in ./frontend,
 // relative to your binary)
-v, err := vite.NewHandler(os.DirFS("./frontend"), true, "http://localhost:5173")
+v, err := vite.NewHandler(vite.Config{
+    FS:       os.DirFS("./frontend"),
+    IsDev:    true,
+    PublicFS: os.DirFS("./frontend/public"), // optional: we use the "public" directory under "FS" by default
+    ViteURL:  "http://localhost:5173",       // optional: we use "http://localhost:5173" by default
+})
 if err != nil { ... }
 ```
 
@@ -35,7 +40,10 @@ func DistFS() fs.FS {
 }
 
 // Serve in production mode
-v, err := vite.NewHandler(DistFS(), false, "")
+v, err := vite.NewHandler(vite.Config{
+    FS:    DistFS(),
+    IsDev: false,
+})
 if err != nil { ... }
 ```
 

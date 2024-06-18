@@ -11,13 +11,37 @@ import (
 // Handler serves files from the Vite output directory.
 type Handler struct {
 	fs              fs.FS
-	hfs             http.FileSystem
-	fileServer      http.Handler
+	fsFS            http.FileSystem
+	fsHandler       http.Handler
+	pub             fs.FS
+	pubFS           http.FileSystem
+	pubHandler      http.Handler
 	manifest        *Manifest
 	isDev           bool
-	viteServer      string
+	viteURL         string
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
+}
+
+// Config is the configuration for the handler.
+type Config struct {
+	// FS is the file system to serve files from. In production, this is
+	// the Vite output directory, which usually is the "dist" directory.
+	// In development, this is usually the root directory of the Vite app.
+	FS fs.FS
+	// PublicFS is the file system to serve public files from. This is
+	// usually the "public" directory. It is optional and can be nil.
+	// If it is nil, we will check if the "public" directory exists in
+	// the Vite app, and serve files from there. If it does not exist,
+	// we will not serve any public files. It is only used in development
+	// mode.
+	PublicFS fs.FS
+	// IsDev is true if the server is running in development mode, false
+	// otherwise.
+	IsDev bool
+	// ViteURL is the URL of the Vite server, used to load the Vite client
+	// in development mode. It is unused in production mode.
+	ViteURL string
 }
 
 // NewHandler creates a new handler.
@@ -26,23 +50,26 @@ type Handler struct {
 // (which usually is the "dist" directory). isDev is true if the server is
 // running in development mode, false otherwise. viteServer is the URL of the
 // Vite server, used to load the Vite client in development mode.
-func NewHandler(fs fs.FS, isDev bool, viteServer string) (*Handler, error) {
-	h := &Handler{
-		fs:         fs,
-		hfs:        http.FS(fs),
-		isDev:      isDev,
-		viteServer: viteServer,
-		templates:  make(map[string]*template.Template),
+func NewHandler(config Config) (*Handler, error) {
+	if config.FS == nil {
+		return nil, fmt.Errorf("vite: fs is nil")
 	}
-	h.fileServer = http.FileServer(h.hfs)
+	h := &Handler{
+		fs:        config.FS,
+		fsFS:      http.FS(config.FS),
+		fsHandler: http.FileServerFS(config.FS),
+		isDev:     config.IsDev,
+		viteURL:   config.ViteURL,
+		templates: make(map[string]*template.Template),
+	}
 
 	h.templates["index.html"] = template.Must(template.New("index.html").Parse(indexHTML))
 
-	if !isDev {
+	if !h.isDev {
 		// We expect the output directory to contain a .vite/manifest.json file.
 		// This file contains the mapping of the original file paths to the
 		// transformed file paths.
-		mf, err := fs.Open(".vite/manifest.json")
+		mf, err := h.fs.Open(".vite/manifest.json")
 		if err != nil {
 			return nil, fmt.Errorf("vite: open manifest: %w", err)
 		}
@@ -52,6 +79,25 @@ func NewHandler(fs fs.FS, isDev bool, viteServer string) (*Handler, error) {
 		h.manifest, err = ParseManifest(mf)
 		if err != nil {
 			return nil, fmt.Errorf("vite: parse manifest: %w", err)
+		}
+	} else {
+		if h.viteURL == "" {
+			h.viteURL = "http://localhost:5173"
+		}
+
+		if config.PublicFS == nil {
+			// We will peek into the "public" directory of the Vite app, and
+			// serve files from there (if it exists).
+			pub, err := fs.Sub(config.FS, "public")
+			if err == nil {
+				h.pub = pub
+				h.pubFS = http.FS(h.pub)
+				h.pubHandler = http.FileServerFS(h.pub)
+			}
+		} else {
+			h.pub = config.PublicFS
+			h.pubFS = http.FS(config.PublicFS)
+			h.pubHandler = http.FileServerFS(config.PublicFS)
 		}
 	}
 
@@ -91,9 +137,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isIndexPath := path == "/" || path == "/index.html"
+
+	// Check if the file exists in the public directory.
+	if h.isDev && h.pubFS != nil && h.pubHandler != nil && !isIndexPath {
+		if _, err := h.pubFS.Open(path); err == nil {
+			h.pubHandler.ServeHTTP(w, r)
+			return
+		}
+	}
+
 	// If we can, we serve from the file system
-	_, err = h.hfs.Open(path)
-	if err != nil || path == "/" || path == "/index.html" {
+	_, err = h.fsFS.Open(path)
+	if err != nil || isIndexPath {
 		// We didn't find it in the file system, so we generate the HTML
 		// from the entry point with Go templating.
 		h.renderPage(w, r, path, nil)
@@ -101,13 +157,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serve the file using the file server.
-	h.fileServer.ServeHTTP(w, r)
+	h.fsHandler.ServeHTTP(w, r)
 }
 
 // pageData is passed to the template when rendering the page.
 type pageData struct {
 	IsDev               bool
-	ViteDevServer       string
+	ViteURL             string
 	Metadata            template.HTML
 	PluginReactPreamble template.HTML
 	StyleSheets         template.HTML
@@ -118,8 +174,8 @@ type pageData struct {
 // renderPage renders the page using the template.
 func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string, chunk *Chunk) {
 	page := pageData{
-		IsDev:         h.isDev,
-		ViteDevServer: h.viteServer,
+		IsDev:   h.isDev,
+		ViteURL: h.viteURL,
 	}
 
 	// Inject metadata into the page.
@@ -134,7 +190,7 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 
 	// Handle both development and production modes.
 	if h.isDev {
-		page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteServer))
+		page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
 	} else {
 		if chunk == nil {
 			chunk = h.manifest.GetEntryPoint()
@@ -172,8 +228,8 @@ var (
 	{{- end }}
 	{{- if .IsDev }}
 		{{ .PluginReactPreamble }}
-		<script type="module" src="{{ .ViteDevServer }}/@vite/client"></script>
-		<script type="module" src="{{ .ViteDevServer }}/src/main.tsx"></script>
+		<script type="module" src="{{ .ViteURL }}/@vite/client"></script>
+		<script type="module" src="{{ .ViteURL }}/src/main.tsx"></script>
 	{{- else }}
 		{{- if .StyleSheets }}
 		{{ .StyleSheets }}
