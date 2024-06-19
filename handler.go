@@ -169,6 +169,7 @@ type pageData struct {
 	StyleSheets         template.HTML
 	Modules             template.HTML
 	PreloadModules      template.HTML
+	Scripts             template.HTML
 }
 
 // renderPage renders the page using the template.
@@ -186,6 +187,12 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 	}
 	if md != nil {
 		page.Metadata = template.HTML(md.String())
+	}
+
+	// Inject scripts into the page.
+	scripts := ScriptsFromContext(ctx)
+	if scripts != "" {
+		page.Scripts = template.HTML(scripts)
 	}
 
 	// Handle both development and production modes.
@@ -240,6 +247,9 @@ var (
 		{{- if .PreloadModules }}
 		{{ .PreloadModules }}
 		{{- end }}
+	{{- end }}
+	{{- if .Scripts }}
+		{{ .Scripts }}
 	{{- end }}
  </head>
   <body class="min-h-screen antialiased">

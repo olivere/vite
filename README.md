@@ -47,6 +47,10 @@ v, err := vite.NewHandler(vite.Config{
 if err != nil { ... }
 ```
 
+## Example
+
+See the [`example` directory](https://github.com/olivere/vite/tree/main/example) for a demonstration.
+
 ## License
 
 See license in LICENSE file.
