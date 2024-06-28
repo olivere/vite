@@ -162,7 +162,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the file exists in the file system.
-	if _, err = h.fsFS.Open(path); err != nil {
+	if _, err := h.fsFS.Open(path); err != nil {
 		// The file does not exist in the file system, so 404.
 		http.NotFound(w, r)
 		return
