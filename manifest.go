@@ -7,11 +7,13 @@ import (
 	"strings"
 )
 
-// Manifest file as written by vite build, as described here:
-// https://vitejs.dev/guide/api-plugin.html#manifest
+// Manifest file as written by vite build, as described in the [Vite Manifest].
 //
-// It is required for backend integration as described here:
-// https://vitejs.dev/guide/backend-integration.html
+// It is required for backend integration as described in
+// [Vite Backend Integration].
+//
+// [Vite Manifest]: https://vitejs.dev/guide/api-plugin.html#manifest
+// [Vite Backend Integration]: https://vitejs.dev/guide/backend-integration.html
 type Manifest map[string]*Chunk
 
 // A Chunk is a single entry in the manifest.
@@ -35,7 +37,7 @@ func ParseManifest(r io.Reader) (*Manifest, error) {
 	return &m, nil
 }
 
-// GetEntryPoint returns the entry point from the manifest.
+// GetEntryPoint returns the entry point from the Vite manifest.
 func (m Manifest) GetEntryPoint() *Chunk {
 	// TODO I'm not sure if there could be multiple entry points. I guess there
 	// could be, but I'm not sure how to handle that.
@@ -80,7 +82,7 @@ func PluginReactPreamble(server string) string {
 
 // GenerateCSS generates the CSS links for the given chunk.
 //
-// The name is the name of the source file, e.g. src/main.tsx.
+// The name is the name of the source file, e.g. "src/main.tsx".
 func (m Manifest) GenerateCSS(name string) string {
 	var sb strings.Builder
 	seen := make(map[string]bool)
@@ -116,7 +118,7 @@ func (m Manifest) GenerateCSS(name string) string {
 
 // GenerateModules generates the module scripts for the given chunk.
 //
-// The name is the name of the source file, e.g. src/main.tsx.
+// The name is the name of the source file, e.g. "src/main.tsx".
 func (m Manifest) GenerateModules(name string) string {
 	chunk, ok := m[name]
 	if !ok {
@@ -136,7 +138,7 @@ func (m Manifest) GenerateModules(name string) string {
 
 // GeneratePreloadModules generates the preload modules for the given chunk.
 //
-// The name is the name of the source file, e.g. src/main.tsx.
+// The name is the name of the source file, e.g. "src/main.tsx".
 func (m Manifest) GeneratePreloadModules(name string) string {
 	var sb strings.Builder
 	seen := make(map[string]bool)

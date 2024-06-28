@@ -12,6 +12,7 @@ type metadataKeyType string
 var metadataKey = metadataKeyType("metadata")
 
 // MetadataFromContext returns the metadata from the context.
+// Use [MetadataToContext] to set the metadata in the context.
 func MetadataFromContext(ctx context.Context) *Metadata {
 	if md, ok := ctx.Value(metadataKey).(*Metadata); ok {
 		return md
@@ -20,6 +21,7 @@ func MetadataFromContext(ctx context.Context) *Metadata {
 }
 
 // MetadataToContext sets the metadata in the context.
+// It is the inverse of [MetadataFromContext].
 func MetadataToContext(ctx context.Context, md Metadata) context.Context {
 	return context.WithValue(ctx, metadataKey, &md)
 }

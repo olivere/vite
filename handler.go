@@ -63,9 +63,12 @@ func NewHandler(config Config) (*Handler, error) {
 		templates: make(map[string]*template.Template),
 	}
 
+	// We register the default index.html template.
 	h.templates["index.html"] = template.Must(template.New("index.html").Parse(indexHTML))
 
 	if !h.isDev {
+		// Production mode.
+		//
 		// We expect the output directory to contain a .vite/manifest.json file.
 		// This file contains the mapping of the original file paths to the
 		// transformed file paths.
@@ -81,6 +84,7 @@ func NewHandler(config Config) (*Handler, error) {
 			return nil, fmt.Errorf("vite: parse manifest: %w", err)
 		}
 	} else {
+		// Development mode.
 		if h.viteURL == "" {
 			h.viteURL = "http://localhost:5173"
 		}
@@ -147,12 +151,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If we can, we serve from the file system
-	_, err = h.fsFS.Open(path)
-	if err != nil || isIndexPath {
+	if isIndexPath {
 		// We didn't find it in the file system, so we generate the HTML
 		// from the entry point with Go templating.
 		h.renderPage(w, r, path, nil)
+		return
+	}
+
+	if _, ok := h.templates[path]; ok {
+		// We found a template for the path, so we render the page using
+		// the template.
+		h.renderPage(w, r, path, nil)
+		return
+	}
+
+	// Check if the file exists in the file system.
+	if _, err = h.fsFS.Open(path); err != nil {
+		// The file does not exist in the file system, so 404.
+		http.NotFound(w, r)
 		return
 	}
 

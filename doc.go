@@ -2,10 +2,10 @@
 Package vite implements a Vite backend integration for Go as described
 in https://vitejs.dev/guide/backend-integration.html.
 
-The integration is done by a HTTP handler that implements http.Handler.
+The integration is done by a HTTP handler that implements [http.Handler].
 The handler has two modes: Development and production.The handler is
-configured by passing a vite.Config struct to the vite.NewHandler function.
-The Config struct has four fields:
+configured by passing a [Config] struct to the [NewHandler] function.
+The [Config] struct has four fields:
 
   - FS: The file system to serve files from. In production, this is the Vite
     output directory, which usually is the "dist" directory. In development,
