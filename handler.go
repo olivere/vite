@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
-	"path/filepath"
+	"path"
 )
 
 // Handler serves files from the Vite output directory.
@@ -134,12 +134,8 @@ func (h *Handler) HandlerFunc() http.HandlerFunc {
 
 // ServeHTTP handles HTTP requests.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Get the path from the URL: https://localhost/articles/123 -> /articles/123
-	path, err := filepath.Abs(r.URL.Path)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusBadRequest)
-		return
-	}
+	// Normalize the path, e.g. /..//articles/123/ -> /articles/123
+	path := path.Clean(r.URL.Path)
 
 	isIndexPath := path == "/" || path == "/index.html"
 
