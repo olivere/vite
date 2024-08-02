@@ -31,7 +31,7 @@ export default defineConfig({
 
 ## Server side
 
-We then added the [`main.go`](https://github.com/olivere/vite/tree/main/example/main.go).
+We then added the [`main.go`](https://github.com/olivere/vite/tree/main/examples/basic/main.go).
 
 ### Development mode
 
