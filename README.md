@@ -47,7 +47,7 @@ v, err := vite.NewHandler(vite.Config{
 if err != nil { ... }
 ```
 
-## Example
+## Examples
 
 ### Basic
 
@@ -56,6 +56,10 @@ See the [`examples/basic` directory](https://github.com/olivere/vite/tree/main/e
 ### Multi Page App
 
 For Vite apps that have multiple entry points, you can pass the entry point by creating a separate `vite.Handler` and specifying the `ViteEntry` field. See the [`examples/multi-page-app` directory](https://github.com/olivere/vite/tree/main/examples/multi-page-app) for an example.
+
+### Template Registration
+
+You can use custom HTML templates in your Go backend for serving different React pages. See the [`examples/template-registration` directory](https://github.com/olivere/vite/tree/main/examples/template-registration) for an example.
 
 ## License
 
