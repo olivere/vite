@@ -49,7 +49,13 @@ if err != nil { ... }
 
 ## Example
 
-See the [`example` directory](https://github.com/olivere/vite/tree/main/example) for a demonstration.
+### Basic
+
+See the [`examples/basic` directory](https://github.com/olivere/vite/tree/main/examples/basic) for a demonstration of a very basic React app that integrates a Go backend.
+
+### Multi Page App
+
+For Vite apps that have multiple entry points, you can pass the entry point by creating a separate `vite.Handler` and specifying the `ViteEntry` field. See the [`examples/multi-page-app` directory](https://github.com/olivere/vite/tree/main/examples/multi-page-app) for an example.
 
 ## License
 
