@@ -18,6 +18,7 @@ type Handler struct {
 	pubHandler      http.Handler
 	manifest        *Manifest
 	isDev           bool
+	viteEntry       string
 	viteURL         string
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
@@ -39,6 +40,12 @@ type Config struct {
 	// IsDev is true if the server is running in development mode, false
 	// otherwise.
 	IsDev bool
+	// ViteEntry specifies the path to a particular entry point in the Vite
+	// manifest. This is useful for implementing secondary routes, similar to the
+	// example provided in the [Multi-Page App] section of the Vite guide.
+	//
+	// [Multi-Page App]: https://vitejs.dev/guide/build.html#multi-page-app
+	ViteEntry string
 	// ViteURL is the URL of the Vite server, used to load the Vite client
 	// in development mode. It is unused in production mode.
 	ViteURL string
@@ -54,11 +61,13 @@ func NewHandler(config Config) (*Handler, error) {
 	if config.FS == nil {
 		return nil, fmt.Errorf("vite: fs is nil")
 	}
+
 	h := &Handler{
 		fs:        config.FS,
 		fsFS:      http.FS(config.FS),
 		fsHandler: http.FileServerFS(config.FS),
 		isDev:     config.IsDev,
+		viteEntry: config.ViteEntry,
 		viteURL:   config.ViteURL,
 		templates: make(map[string]*template.Template),
 	}
@@ -175,6 +184,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // pageData is passed to the template when rendering the page.
 type pageData struct {
 	IsDev               bool
+	ViteEntry           string
 	ViteURL             string
 	Metadata            template.HTML
 	PluginReactPreamble template.HTML
@@ -187,8 +197,9 @@ type pageData struct {
 // renderPage renders the page using the template.
 func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string, chunk *Chunk) {
 	page := pageData{
-		IsDev:   h.isDev,
-		ViteURL: h.viteURL,
+		IsDev:     h.isDev,
+		ViteEntry: h.viteEntry,
+		ViteURL:   h.viteURL,
 	}
 
 	// Inject metadata into the page.
@@ -212,7 +223,17 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
 	} else {
 		if chunk == nil {
-			chunk = h.manifest.GetEntryPoint()
+			if page.ViteEntry == "" {
+				chunk = h.manifest.GetEntryPoint()
+			} else {
+				entries := h.manifest.GetEntryPoints()
+				for _, entry := range entries {
+					if page.ViteEntry == entry.Src {
+						chunk = entry
+						break
+					}
+				}
+			}
 			if chunk == nil {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return

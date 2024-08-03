@@ -8,7 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+pnpm-lock.yaml
+dist/*
+!dist/README.md
 dist-ssr
 *.local
 
@@ -22,3 +24,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+tmp
