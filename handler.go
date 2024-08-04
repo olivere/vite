@@ -310,11 +310,11 @@ var (
 	{{- if .IsDev }}
 		{{ .PluginReactPreamble }}
 		<script type="module" src="{{ .ViteURL }}/@vite/client"></script>
-		{{ if ne .ViteEntry "" }}
+		{{- if ne .ViteEntry "" }}
 			<script type="module" src="{{ .ViteURL }}/{{ .ViteEntry }}"></script>
-		{{ else }}
+		{{- else }}
 			<script type="module" src="{{ .ViteURL }}/src/main.tsx"></script>
-		{{ end }}
+		{{- end }}
 	{{- else }}
 		{{- if .StyleSheets }}
 		{{ .StyleSheets }}
