@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"path"
 	"strings"
@@ -281,14 +281,20 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		}
 	}
 
+	// Handle case when requested template is not found:
+	// 1. If multiple templates exist, log a warning with the requested and available templates.
+	// 2. Fall back to a default template.
 	if !ok {
-		// check if custom templates were registered, perhaps a mistake was made in naming
 		if len(h.templates) > 1 {
 			keys := make([]string, 0, len(h.templates))
 			for k := range h.templates {
 				keys = append(keys, k)
 			}
-			log.Printf("Warning: template %q not found. Available templates: %s", tmplName, strings.Join(keys, ", "))
+			slog.Warn(
+				"Template not found",
+				"requestedTemplate", tmplName,
+				"availableTemplates", strings.Join(keys, ", "),
+			)
 		}
 		tmpl = h.templates[fallbackTemplateName]
 	}
