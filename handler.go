@@ -259,18 +259,21 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		tmplName = path
 	}
 
-	// Find the template to use.
+	// Find the template by name.
 	tmpl, ok := h.templates[tmplName]
+
+	// Catch common variations. If a template isn't found by the exact name,
+	// check for variations like: "page", "page.html", or "/page.html", to match
+	// how users might have registered the template.
 	if !ok {
-		// Try alternative names
-		alternativeNames := []string{
+		variations := []string{
 			strings.TrimPrefix(tmplName, "/"),
 			strings.TrimPrefix(tmplName, "/") + ".html",
 			strings.TrimSuffix(strings.TrimPrefix(tmplName, "/"), ".html"),
 			tmplName + ".html",
 		}
-		for _, altName := range alternativeNames {
-			if t, found := h.templates[altName]; found {
+		for _, variant := range variations {
+			if t, found := h.templates[variant]; found {
 				tmpl = t
 				ok = true
 				break
