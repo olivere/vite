@@ -59,7 +59,7 @@ For Vite apps that have multiple entry points, you can pass the entry point by c
 
 ### Template Registration
 
-You can use custom HTML templates in your Go backend for serving different React pages. See the [`examples/template-registration` directory](https://github.com/olivere/vite/tree/main/examples/template-registration) for an example.
+You can use custom HTML templates in your Go backend for serving different React pages. See the [`examples/template-registry` directory](https://github.com/olivere/vite/tree/main/examples/template-registry) for an example.
 
 ## License
 
