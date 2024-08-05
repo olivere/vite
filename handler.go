@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"path"
+	"strings"
 )
 
 // Handler serves files from the Vite output directory.
@@ -72,8 +74,8 @@ func NewHandler(config Config) (*Handler, error) {
 		templates: make(map[string]*template.Template),
 	}
 
-	// We register the default index.html template.
-	h.templates["index.html"] = template.Must(template.New("index.html").Parse(indexHTML))
+	// We register a fallback template.
+	h.templates[fallbackTemplateName] = template.Must(template.New(fallbackTemplateName).Parse(fallbackHTML))
 
 	if !h.isDev {
 		// Production mode.
@@ -123,9 +125,15 @@ func (h *Handler) SetDefaultMetadata(md *Metadata) {
 	h.defaultMetadata = md
 }
 
-// RegisterTemplate registers a template with the handler. Notice that the
-// template name must be unique, and "index.html" is already registered by
-// default. If the template name is already registered, it panics.
+// RegisterTemplate adds a new template to the handler's template collection.
+// The 'name' parameter should match the URL path where the template will be used.
+// Use "index.html" for the root URL ("/").
+//
+// Parameters:
+//   - name: String identifier for the template, corresponding to its URL path
+//   - text: String content of the template
+//
+// Panics if a template with the given name is already registered.
 func (h *Handler) RegisterTemplate(name, text string) {
 	if h.templates == nil {
 		h.templates = make(map[string]*template.Template)
@@ -244,11 +252,51 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src))
 	}
 
-	// Find the template to use.
-	tmpl, ok := h.templates[path]
+	var tmplName string
+	if path == "/" {
+		tmplName = "index.html"
+	} else {
+		tmplName = path
+	}
+
+	// Find the template by name.
+	tmpl, ok := h.templates[tmplName]
+
+	// Catch common variations. If a template isn't found by the exact name,
+	// check for variations like: "page", "page.html", or "/page.html", to match
+	// how users might have registered the template.
 	if !ok {
-		// Use index.html by default
-		tmpl = h.templates["index.html"]
+		variations := []string{
+			strings.TrimPrefix(tmplName, "/"),
+			strings.TrimPrefix(tmplName, "/") + ".html",
+			strings.TrimSuffix(strings.TrimPrefix(tmplName, "/"), ".html"),
+			tmplName + ".html",
+		}
+		for _, variant := range variations {
+			if t, found := h.templates[variant]; found {
+				tmpl = t
+				ok = true
+				break
+			}
+		}
+	}
+
+	// Handle case when requested template is not found:
+	// 1. If multiple templates exist, log a warning with the requested and available templates.
+	// 2. Fall back to a default template.
+	if !ok {
+		if len(h.templates) > 1 {
+			keys := make([]string, 0, len(h.templates))
+			for k := range h.templates {
+				keys = append(keys, k)
+			}
+			slog.Warn(
+				"Template not found",
+				"requestedTemplate", tmplName,
+				"availableTemplates", strings.Join(keys, ", "),
+			)
+		}
+		tmpl = h.templates[fallbackTemplateName]
 	}
 
 	// Execute the template.
@@ -258,8 +306,10 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 	}
 }
 
+const fallbackTemplateName = "fallback.html"
+
 var (
-	indexHTML = `<!doctype html>
+	fallbackHTML = `<!doctype html>
 <html lang="en" class="h-full scroll-smooth">
   <head>
     <meta charset="UTF-8" />
@@ -269,7 +319,11 @@ var (
 	{{- if .IsDev }}
 		{{ .PluginReactPreamble }}
 		<script type="module" src="{{ .ViteURL }}/@vite/client"></script>
-		<script type="module" src="{{ .ViteURL }}/src/main.tsx"></script>
+		{{- if ne .ViteEntry "" }}
+			<script type="module" src="{{ .ViteURL }}/{{ .ViteEntry }}"></script>
+		{{- else }}
+			<script type="module" src="{{ .ViteURL }}/src/main.tsx"></script>
+		{{- end }}
 	{{- else }}
 		{{- if .StyleSheets }}
 		{{ .StyleSheets }}

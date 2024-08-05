@@ -39,8 +39,6 @@ func ParseManifest(r io.Reader) (*Manifest, error) {
 
 // GetEntryPoint returns the entry point from the Vite manifest.
 func (m Manifest) GetEntryPoint() *Chunk {
-	// TODO I'm not sure if there could be multiple entry points. I guess there
-	// could be, but I'm not sure how to handle that.
 	for _, chunk := range m {
 		if chunk.IsEntry {
 			return chunk
