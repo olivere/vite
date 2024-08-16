@@ -127,12 +127,17 @@ const viteTmpl = `
 // If the marker is not found, it returns an error.
 //
 // Note: This function replaces only the first occurrence of the marker.
-func insertViteHTML(content []byte, marker, html string) ([]byte, error) {
-	mb := []byte(marker)
-	if bytes.Index(content, mb) < 0 {
+func insertViteHTML(content, marker, html []byte) ([]byte, error) {
+	if bytes.Index(content, marker) < 0 {
 		return nil, fmt.Errorf("vite: template marker not found: %q", marker)
 	}
-	return bytes.Replace(content, mb, []byte(html+marker), 1), nil
+
+	// append marker bytes to the end of html
+	for _, b := range marker {
+		html = append(html, b)
+	}
+
+	return bytes.Replace(content, marker, html, 1), nil
 }
 
 // Use wraps the provided HTTP handler function with the Middleware's logic,
@@ -200,7 +205,7 @@ func (m *Middleware) Use(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 
-		resp, err := insertViteHTML(crw.body, "</head>", buf.String())
+		resp, err := insertViteHTML(crw.body, []byte("</head>"), buf.Bytes())
 		if err != nil {
 			slog.Error("vite: inserting vite html", err)
 			http.Error(w, "Iternal server error", http.StatusInternalServerError)
