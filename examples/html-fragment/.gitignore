@@ -9,8 +9,8 @@ lerna-debug.log*
 
 node_modules
 pnpm-lock.yaml
-dist/*
-!dist/README.md
+static/dist/*
+!static/dist/README.md
 dist-ssr
 *.local
 

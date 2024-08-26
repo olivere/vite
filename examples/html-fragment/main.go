@@ -14,8 +14,8 @@ import (
 	"github.com/olivere/vite"
 )
 
-//go:embed all:dist
-var dist embed.FS
+//go:embed all:static
+var static embed.FS
 
 //go:embed index.tmpl
 var goIndex embed.FS
@@ -41,7 +41,7 @@ func main() {
 	} else {
 		viteAssetsDir = "dist/assets"
 		viteAssetsURL = "/assets/"
-		fs, err := fs.Sub(dist, "dist")
+		fs, err := fs.Sub(static, "static/dist")
 		if err != nil {
 			panic(err)
 		}
@@ -61,9 +61,18 @@ func main() {
 	//
 	// import viteLogo from '/static/vite.svg'
 
-	staticAssets := http.FileServer(http.Dir("static"))
+	var staticFileServer http.Handler
+	if *isDev {
+		staticFileServer = http.FileServer(http.Dir("static"))
+	} else {
+		staticFS, err := fs.Sub(static, "static")
+		if err != nil {
+			panic(err)
+		}
+		staticFileServer = http.FileServer(http.FS(staticFS))
+	}
 
-	mux.Handle("/static/", http.StripPrefix("/static/", staticAssets))
+	mux.Handle("/static/", http.StripPrefix("/static/", staticFileServer))
 
 	// Serve Vite-managed assets from the Go backend, accommodating both
 	// development and production environments.
@@ -71,9 +80,19 @@ func main() {
 	// Usage in Vite remains the same as in a standard Vite setup. The Go backend
 	// will serve the assets from the correct location based on the environment.
 
-	viteAssets := http.FileServer(http.Dir(viteAssetsDir))
+	var viteAssetsFileServer http.Handler
+	if *isDev {
+		viteAssetsFileServer = http.FileServer(http.Dir(viteAssetsDir))
+	} else {
+		viteAssetsFS, err := fs.Sub(static, "static/dist/assets")
+		if err != nil {
+			panic(err)
+		}
+		viteAssetsFileServer = http.FileServer(http.FS(viteAssetsFS))
 
-	mux.Handle(viteAssetsURL, http.StripPrefix(viteAssetsURL, viteAssets))
+	}
+
+	mux.Handle(viteAssetsURL, http.StripPrefix(viteAssetsURL, viteAssetsFileServer))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// viteFragment generates the necessary HTML for Vite integration.
