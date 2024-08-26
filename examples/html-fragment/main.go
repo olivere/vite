@@ -26,28 +26,6 @@ func main() {
 	)
 	flag.Parse()
 
-	// The following block sets up the environment and configuration for a Go
-	// application integrated with Vite. It determines whether the application
-	// should run in development or production mode based on the 'isDev' flag
-
-	var viteAssetsDir string
-	var viteAssetsURL string
-	var viteFS fs.FS
-
-	if *isDev {
-		viteAssetsDir = "src/assets"
-		viteAssetsURL = "/src/assets/"
-		viteFS = os.DirFS(".")
-	} else {
-		viteAssetsDir = "dist/assets"
-		viteAssetsURL = "/assets/"
-		fs, err := fs.Sub(static, "static/dist")
-		if err != nil {
-			panic(err)
-		}
-		viteFS = fs
-	}
-
 	mux := http.NewServeMux()
 
 	// Serve assets that Vite would treat as 'public' assets.
@@ -81,20 +59,37 @@ func main() {
 	// will serve the assets from the correct location based on the environment.
 
 	var viteAssetsFileServer http.Handler
+	var viteAssetsSrcAttribute string // vite changes this path, depending on dev or prod
 	if *isDev {
-		viteAssetsFileServer = http.FileServer(http.Dir(viteAssetsDir))
+		viteAssetsSrcAttribute = "/src/assets/"
+		viteAssetsFileServer = http.FileServer(http.Dir("src/assets"))
 	} else {
 		viteAssetsFS, err := fs.Sub(static, "static/dist/assets")
 		if err != nil {
 			panic(err)
 		}
 		viteAssetsFileServer = http.FileServer(http.FS(viteAssetsFS))
-
+		viteAssetsSrcAttribute = "/assets/"
 	}
 
-	mux.Handle(viteAssetsURL, http.StripPrefix(viteAssetsURL, viteAssetsFileServer))
+	mux.Handle(viteAssetsSrcAttribute, http.StripPrefix(viteAssetsSrcAttribute, viteAssetsFileServer))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// viteFS represents the filesystem used for serving Vite assets.
+		//
+		// This variable is used to configure the Vite integration, ensuring that
+		// the correct assets are served based on the current environment.
+		var viteFS fs.FS
+		if *isDev {
+			viteFS = os.DirFS(".")
+		} else {
+			fs, err := fs.Sub(static, "static/dist")
+			if err != nil {
+				panic(err)
+			}
+			viteFS = fs
+		}
+
 		// viteFragment generates the necessary HTML for Vite integration.
 		//
 		// It calls vite.HTMLFragment with a Config struct to create an HTML fragment
