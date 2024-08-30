@@ -6,6 +6,15 @@ import (
 	"html/template"
 )
 
+// Fragment holds HTML content generated for Vite integration, intended to be
+// embedded in HTML templates.
+type Fragment struct {
+	// Tags contains a string of HTML content for embedding Vite-related assets
+	// such as JavaScript and CSS. The content is stored as template.HTML to
+	// ensure it is rendered without escaping within the HTML template.
+	Tags template.HTML
+}
+
 // HTMLFragment generates an HTML fragment for Vite integration based on the provided configuration.
 //
 // This function takes a Config struct and uses it to create the necessary HTML
@@ -32,7 +41,7 @@ import (
 //	    // Handle error
 //	}
 //	// Use fragment in your HTML template
-func HTMLFragment(config Config) (template.HTML, error) {
+func HTMLFragment(config Config) (*Fragment, error) {
 	pd := &pageData{
 		IsDev:     config.IsDev,
 		ViteEntry: config.ViteEntry,
@@ -55,13 +64,13 @@ func HTMLFragment(config Config) (template.HTML, error) {
 	} else {
 		mf, err := config.FS.Open(".vite/manifest.json")
 		if err != nil {
-			return "", fmt.Errorf("vite: open manifest: %w", err)
+			return nil, fmt.Errorf("vite: open manifest: %w", err)
 		}
 		defer mf.Close()
 
 		m, err := ParseManifest(mf)
 		if err != nil {
-			return "", fmt.Errorf("vite: parse manifest: %w", err)
+			return nil, fmt.Errorf("vite: parse manifest: %w", err)
 		}
 		var chunk *Chunk
 		if pd.ViteEntry == "" {
@@ -76,7 +85,7 @@ func HTMLFragment(config Config) (template.HTML, error) {
 			}
 		}
 		if chunk == nil {
-			return "", fmt.Errorf("vite: new page data: unable to parse manifest")
+			return nil, fmt.Errorf("vite: new page data: unable to parse manifest")
 		}
 
 		pd.StyleSheets = template.HTML(m.GenerateCSS(chunk.Src))
@@ -91,17 +100,17 @@ func HTMLFragment(config Config) (template.HTML, error) {
 	tmpl, err := template.New("vite").Parse(htmlTmpl)
 	if err != nil {
 		// Return an error if parsing fails
-		return "", fmt.Errorf("vite: parse middleware template: %w", err)
+		return nil, fmt.Errorf("vite: parse middleware template: %w", err)
 	}
 
 	// Execute the template with pd (PageData) as the data source
 	err = tmpl.Execute(&buf, pd)
 	if err != nil {
 		// Return an error if template execution fails
-		return "", fmt.Errorf("vite: execute middleware template: %w", err)
+		return nil, fmt.Errorf("vite: execute middleware template: %w", err)
 	}
 
-	return template.HTML(buf.Bytes()), nil
+	return &Fragment{Tags: template.HTML(buf.Bytes())}, nil
 }
 
 // htmlTmpl is a constant string that contains a Go template for including
