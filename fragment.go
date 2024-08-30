@@ -64,21 +64,19 @@ func HTMLFragment(config Config) (template.HTML, error) {
 			return "", fmt.Errorf("vite: parse manifest: %w", err)
 		}
 		var chunk *Chunk
-		if chunk == nil {
-			if pd.ViteEntry == "" {
-				chunk = m.GetEntryPoint()
-			} else {
-				entries := m.GetEntryPoints()
-				for _, entry := range entries {
-					if pd.ViteEntry == entry.Src {
-						chunk = entry
-						break
-					}
+		if pd.ViteEntry == "" {
+			chunk = m.GetEntryPoint()
+		} else {
+			entries := m.GetEntryPoints()
+			for _, entry := range entries {
+				if pd.ViteEntry == entry.Src {
+					chunk = entry
+					break
 				}
 			}
-			if chunk == nil {
-				return "", fmt.Errorf("vite: new page data: unable to parse manifest")
-			}
+		}
+		if chunk == nil {
+			return "", fmt.Errorf("vite: new page data: unable to parse manifest")
 		}
 
 		pd.StyleSheets = template.HTML(m.GenerateCSS(chunk.Src))
