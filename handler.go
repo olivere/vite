@@ -26,33 +26,6 @@ type Handler struct {
 	defaultMetadata *Metadata
 }
 
-// Config is the configuration for the handler.
-type Config struct {
-	// FS is the file system to serve files from. In production, this is
-	// the Vite output directory, which usually is the "dist" directory.
-	// In development, this is usually the root directory of the Vite app.
-	FS fs.FS
-	// PublicFS is the file system to serve public files from. This is
-	// usually the "public" directory. It is optional and can be nil.
-	// If it is nil, we will check if the "public" directory exists in
-	// the Vite app, and serve files from there. If it does not exist,
-	// we will not serve any public files. It is only used in development
-	// mode.
-	PublicFS fs.FS
-	// IsDev is true if the server is running in development mode, false
-	// otherwise.
-	IsDev bool
-	// ViteEntry specifies the path to a particular entry point in the Vite
-	// manifest. This is useful for implementing secondary routes, similar to the
-	// example provided in the [Multi-Page App] section of the Vite guide.
-	//
-	// [Multi-Page App]: https://vitejs.dev/guide/build.html#multi-page-app
-	ViteEntry string
-	// ViteURL is the URL of the Vite server, used to load the Vite client
-	// in development mode. It is unused in production mode.
-	ViteURL string
-}
-
 // NewHandler creates a new handler.
 //
 // fs is the file system to serve files from, the Vite output directory
