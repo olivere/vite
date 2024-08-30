@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     manifest: true,
-
+    emptyOutDir: false,
     rollupOptions: {
       input: {
         main: "/src/main.tsx",

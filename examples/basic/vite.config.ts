@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     // generates .vite/manifest.json in outDir
     manifest: true,
-
+    emptyOutDir: false,
     rollupOptions: {
       // overwrite default .html entry
       input: "/src/main.tsx",
