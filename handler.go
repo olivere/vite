@@ -22,6 +22,7 @@ type Handler struct {
 	isDev           bool
 	viteEntry       string
 	viteURL         string
+	viteTemplate    Scaffolding
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
 }
@@ -38,13 +39,14 @@ func NewHandler(config Config) (*Handler, error) {
 	}
 
 	h := &Handler{
-		fs:        config.FS,
-		fsFS:      http.FS(config.FS),
-		fsHandler: http.FileServerFS(config.FS),
-		isDev:     config.IsDev,
-		viteEntry: config.ViteEntry,
-		viteURL:   config.ViteURL,
-		templates: make(map[string]*template.Template),
+		fs:           config.FS,
+		fsFS:         http.FS(config.FS),
+		fsHandler:    http.FileServerFS(config.FS),
+		isDev:        config.IsDev,
+		viteEntry:    config.ViteEntry,
+		viteURL:      config.ViteURL,
+		viteTemplate: config.ViteTemplate,
+		templates:    make(map[string]*template.Template),
 	}
 
 	// We register a fallback template.
@@ -183,7 +185,13 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		ViteURL:   h.viteURL,
 	}
 
-	// Inject metadata into the page.
+	// Inject metadata in// Check if the specified Vite template requires a preamble and set the
+	// corresponding preamble string in the plugin configuration.
+	//
+	// If the Vite template value is less than 1, it is considered as an
+	// uninitialized state, and the default React preamble is applied.
+	// Otherwise, if the template requires a preamble, it uses the
+	// specific preamble for the given Vite template.to the page.
 	ctx := r.Context()
 	md := MetadataFromContext(ctx)
 	if md == nil {
@@ -201,7 +209,19 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 
 	// Handle both development and production modes.
 	if h.isDev {
-		page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
+		// Check if the specified Vite template requires a preamble and set the
+		// corresponding preamble string in the plugin configuration.
+		//
+		// If the Vite template value is less than 1, it is considered as an
+		// uninitialized state, and the default React preamble is applied.
+		// Otherwise, if the template requires a preamble, it uses the
+		// specific preamble for the given Vite template.
+		if h.viteTemplate < 1 {
+			page.PluginReactPreamble = template.HTML(React.Preamble(h.viteURL))
+		} else if h.viteTemplate.RequiresPreamble() {
+			page.PluginReactPreamble = template.HTML(h.viteTemplate.Preamble(h.viteURL))
+		}
+		// page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
 	} else {
 		if chunk == nil {
 			if page.ViteEntry == "" {

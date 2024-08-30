@@ -40,7 +40,18 @@ func HTMLFragment(config Config) (template.HTML, error) {
 	}
 
 	if config.IsDev {
-		pd.PluginReactPreamble = template.HTML(PluginReactPreamble(config.ViteURL))
+		// Check if the specified Vite template requires a preamble and set the
+		// corresponding preamble string in the plugin configuration.
+		//
+		// If the Vite template value is less than 1, it is considered as an
+		// uninitialized state, and the default React preamble is applied.
+		// Otherwise, if the template requires a preamble, it uses the
+		// specific preamble for the given Vite template.
+		if config.ViteTemplate < 1 {
+			pd.PluginReactPreamble = template.HTML(React.Preamble(config.ViteURL))
+		} else if config.ViteTemplate.RequiresPreamble() {
+			pd.PluginReactPreamble = template.HTML(config.ViteTemplate.Preamble(config.ViteURL))
+		}
 	} else {
 		mf, err := config.FS.Open(".vite/manifest.json")
 		if err != nil {
