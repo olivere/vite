@@ -61,8 +61,16 @@ func HTMLFragment(config Config) (*Fragment, error) {
 		} else if config.ViteTemplate.RequiresPreamble() {
 			pd.PluginReactPreamble = template.HTML(config.ViteTemplate.Preamble(config.ViteURL))
 		}
+
+		// Development mode.
+		if pd.ViteURL == "" {
+			pd.ViteURL = "http://localhost:5173"
+		}
 	} else {
-		mf, err := config.FS.Open(".vite/manifest.json")
+		if config.ViteManifest == "" {
+			config.ViteManifest = ".vite/manifest.json"
+		}
+		mf, err := config.FS.Open(config.ViteManifest)
 		if err != nil {
 			return nil, fmt.Errorf("vite: open manifest: %w", err)
 		}
@@ -85,7 +93,7 @@ func HTMLFragment(config Config) (*Fragment, error) {
 			}
 		}
 		if chunk == nil {
-			return nil, fmt.Errorf("vite: new page data: unable to parse manifest")
+			return nil, fmt.Errorf("vite: unable to find chunk for entry point %q", pd.ViteEntry)
 		}
 
 		pd.StyleSheets = template.HTML(m.GenerateCSS(chunk.Src))
@@ -100,14 +108,14 @@ func HTMLFragment(config Config) (*Fragment, error) {
 	tmpl, err := template.New("vite").Parse(htmlTmpl)
 	if err != nil {
 		// Return an error if parsing fails
-		return nil, fmt.Errorf("vite: parse middleware template: %w", err)
+		return nil, fmt.Errorf("vite: parse template: %w", err)
 	}
 
 	// Execute the template with pd (PageData) as the data source
 	err = tmpl.Execute(&buf, pd)
 	if err != nil {
 		// Return an error if template execution fails
-		return nil, fmt.Errorf("vite: execute middleware template: %w", err)
+		return nil, fmt.Errorf("vite: execute template: %w", err)
 	}
 
 	return &Fragment{Tags: template.HTML(buf.Bytes())}, nil

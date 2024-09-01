@@ -58,7 +58,10 @@ func NewHandler(config Config) (*Handler, error) {
 		// We expect the output directory to contain a .vite/manifest.json file.
 		// This file contains the mapping of the original file paths to the
 		// transformed file paths.
-		mf, err := h.fs.Open(".vite/manifest.json")
+		if config.ViteManifest == "" {
+			config.ViteManifest = ".vite/manifest.json"
+		}
+		mf, err := h.fs.Open(config.ViteManifest)
 		if err != nil {
 			return nil, fmt.Errorf("vite: open manifest: %w", err)
 		}

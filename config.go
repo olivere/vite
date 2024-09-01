@@ -29,8 +29,15 @@ type Config struct {
 	ViteEntry string
 
 	// ViteURL is the URL of the Vite server, used to load the Vite client
-	// in development mode. It is unused in production mode.
+	// in development mode (and defaults to http://localhost:5173).
+	// It is unused in production mode.
 	ViteURL string
+
+	// ViteManifest is the path to the Vite manifest file. This is used in
+	// production mode to load the manifest file and map the original file
+	// paths to the transformed file paths. If this is not provided, the
+	// default path is ".vite/manifest.json".
+	ViteManifest string
 
 	// ViteTemplate specifies a configuration template used to scaffold the Vite
 	// project. See [Scaffolding Your First Vite Project].
