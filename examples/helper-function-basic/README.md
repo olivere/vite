@@ -31,7 +31,7 @@ export default defineConfig({
 
 ## Server side
 
-We then added the [`main.go`](https://github.com/olivere/vite/tree/main/examples/basic/main.go).
+We then added the [`main.go`](./main.go).
 
 ### Development mode
 
@@ -41,7 +41,7 @@ Now run the Go code as:
 
 ```sh
 $ go run main.go -dev
-Listening on on http://127.0.0.1:62002
+Listening on on http://127.0.0.1:8080
 ```
 
 Open up the URL in your browser and you should see the React app, being rendered by a Go HTML template. Not convinced? Open up development mode and go to the `Console`. You should see a message there, which was embedded by the Go code that rendered the HTML.
