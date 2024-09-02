@@ -22,35 +22,9 @@ type Handler struct {
 	isDev           bool
 	viteEntry       string
 	viteURL         string
+	viteTemplate    Scaffolding
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
-}
-
-// Config is the configuration for the handler.
-type Config struct {
-	// FS is the file system to serve files from. In production, this is
-	// the Vite output directory, which usually is the "dist" directory.
-	// In development, this is usually the root directory of the Vite app.
-	FS fs.FS
-	// PublicFS is the file system to serve public files from. This is
-	// usually the "public" directory. It is optional and can be nil.
-	// If it is nil, we will check if the "public" directory exists in
-	// the Vite app, and serve files from there. If it does not exist,
-	// we will not serve any public files. It is only used in development
-	// mode.
-	PublicFS fs.FS
-	// IsDev is true if the server is running in development mode, false
-	// otherwise.
-	IsDev bool
-	// ViteEntry specifies the path to a particular entry point in the Vite
-	// manifest. This is useful for implementing secondary routes, similar to the
-	// example provided in the [Multi-Page App] section of the Vite guide.
-	//
-	// [Multi-Page App]: https://vitejs.dev/guide/build.html#multi-page-app
-	ViteEntry string
-	// ViteURL is the URL of the Vite server, used to load the Vite client
-	// in development mode. It is unused in production mode.
-	ViteURL string
 }
 
 // NewHandler creates a new handler.
@@ -65,13 +39,14 @@ func NewHandler(config Config) (*Handler, error) {
 	}
 
 	h := &Handler{
-		fs:        config.FS,
-		fsFS:      http.FS(config.FS),
-		fsHandler: http.FileServerFS(config.FS),
-		isDev:     config.IsDev,
-		viteEntry: config.ViteEntry,
-		viteURL:   config.ViteURL,
-		templates: make(map[string]*template.Template),
+		fs:           config.FS,
+		fsFS:         http.FS(config.FS),
+		fsHandler:    http.FileServerFS(config.FS),
+		isDev:        config.IsDev,
+		viteEntry:    config.ViteEntry,
+		viteURL:      config.ViteURL,
+		viteTemplate: config.ViteTemplate,
+		templates:    make(map[string]*template.Template),
 	}
 
 	// We register a fallback template.
@@ -83,7 +58,10 @@ func NewHandler(config Config) (*Handler, error) {
 		// We expect the output directory to contain a .vite/manifest.json file.
 		// This file contains the mapping of the original file paths to the
 		// transformed file paths.
-		mf, err := h.fs.Open(".vite/manifest.json")
+		if config.ViteManifest == "" {
+			config.ViteManifest = ".vite/manifest.json"
+		}
+		mf, err := h.fs.Open(config.ViteManifest)
 		if err != nil {
 			return nil, fmt.Errorf("vite: open manifest: %w", err)
 		}
@@ -210,7 +188,13 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		ViteURL:   h.viteURL,
 	}
 
-	// Inject metadata into the page.
+	// Inject metadata in// Check if the specified Vite template requires a preamble and set the
+	// corresponding preamble string in the plugin configuration.
+	//
+	// If the Vite template value is less than 1, it is considered as an
+	// uninitialized state, and the default React preamble is applied.
+	// Otherwise, if the template requires a preamble, it uses the
+	// specific preamble for the given Vite template.to the page.
 	ctx := r.Context()
 	md := MetadataFromContext(ctx)
 	if md == nil {
@@ -228,7 +212,19 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 
 	// Handle both development and production modes.
 	if h.isDev {
-		page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
+		// Check if the specified Vite template requires a preamble and set the
+		// corresponding preamble string in the plugin configuration.
+		//
+		// If the Vite template value is less than 1, it is considered as an
+		// uninitialized state, and the default React preamble is applied.
+		// Otherwise, if the template requires a preamble, it uses the
+		// specific preamble for the given Vite template.
+		if h.viteTemplate < 1 {
+			page.PluginReactPreamble = template.HTML(React.Preamble(h.viteURL))
+		} else if h.viteTemplate.RequiresPreamble() {
+			page.PluginReactPreamble = template.HTML(h.viteTemplate.Preamble(h.viteURL))
+		}
+		// page.PluginReactPreamble = template.HTML(PluginReactPreamble(h.viteURL))
 	} else {
 		if chunk == nil {
 			if page.ViteEntry == "" {
