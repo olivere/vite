@@ -154,10 +154,10 @@ func (m Manifest) GeneratePreloadModules(name string) string {
 		}
 
 		if chunk.File != "" {
-			sb.WriteString(`<script type="preloadmodule" src="`)
+			sb.WriteString(`<link rel="modulepreload" href="`)
 			sb.WriteString("/")
 			sb.WriteString(chunk.File)
-			sb.WriteString(`"></script>`)
+			sb.WriteString(`">`)
 		}
 
 		for _, imp := range chunk.Imports {
