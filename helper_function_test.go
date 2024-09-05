@@ -158,3 +158,27 @@ func TestDevModeFragmentContainsModuleTags(t *testing.T) {
 		t.Fatalf("Generated HTML block does not contain: %s", entrypointTag)
 	}
 }
+
+func TestDevModeFragmentWorksWithTrailingSlash(t *testing.T) {
+	const entrypoint string = "main.js"
+
+	viteFragment, err := vite.HTMLFragment(vite.Config{
+		FS:        getTestFS(),
+		IsDev:     true,
+		ViteURL:   "http://localhost:5173/",
+		ViteEntry: entrypoint,
+	})
+
+	if err != nil {
+		t.Fatal("Unable to produce Vite HTML Fragment", err)
+	}
+
+	generatedHTML := string(viteFragment.Tags)
+	fmt.Println(generatedHTML)
+
+	const viteClientTag string = `<script type="module" src="http://localhost:5173/@vite/client"></script>`
+
+	if !strings.Contains(generatedHTML, viteClientTag) {
+		t.Fatalf("Generated HTML block does not contain: %s", viteClientTag)
+	}
+}
