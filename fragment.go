@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"net/url"
 )
 
 // Fragment holds HTML content generated for Vite integration, intended to be
@@ -104,8 +105,14 @@ func HTMLFragment(config Config) (*Fragment, error) {
 	// Create a buffer to store the executed template output
 	var buf bytes.Buffer
 
+	// Pass the JoinPath function to the template so we
+	// can use {{ urljoin .base .path }}
+	templateFuncs := template.FuncMap{
+		"urljoin": url.JoinPath,
+	}
+
 	// Parse the predefined headTmpl into a new template
-	tmpl, err := template.New("vite").Parse(htmlTmpl)
+	tmpl, err := template.New("vite").Funcs(templateFuncs).Parse(htmlTmpl)
 	if err != nil {
 		// Return an error if parsing fails
 		return nil, fmt.Errorf("vite: parse template: %w", err)
@@ -128,11 +135,11 @@ func HTMLFragment(config Config) (*Fragment, error) {
 const htmlTmpl = `
 {{- if .IsDev }}
 	{{ .PluginReactPreamble }}
-	<script type="module" src="{{ .ViteURL }}/@vite/client"></script>
+	<script type="module" src="{{ urljoin .ViteURL "/@vite/client" }}"></script>
 	{{- if ne .ViteEntry "" }}
-		<script type="module" src="{{ .ViteURL }}/{{ .ViteEntry }}"></script>
+		<script type="module" src="{{ urljoin .ViteURL .ViteEntry }}"></script>
 	{{- else }}
-		<script type="module" src="{{ .ViteURL }}/src/main.tsx"></script>
+		<script type="module" src="{{ urljoin .ViteURL "/src/main.tsx" }}"></script>
 	{{- end }}
 {{- else }}
 	{{- if .StyleSheets }}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 )
 
@@ -69,13 +70,14 @@ func (m Manifest) GetChunk(name string) (*Chunk, bool) {
 // PluginReactPreamble returns the script tag that should be injected into the
 // HTML to enable React Fast Refresh.
 func PluginReactPreamble(server string) string {
+	url, _ := url.JoinPath(server, "/@react-refresh")
 	return fmt.Sprintf(`<script type="module">
-  import RefreshRuntime from '%s/@react-refresh'
+  import RefreshRuntime from '%s'
   RefreshRuntime.injectIntoGlobalHook(window)
   window.$RefreshReg$ = () => {}
   window.$RefreshSig$ = () => (type) => type
   window.__vite_plugin_react_preamble_installed__ = true
-</script>`, server)
+</script>`, url)
 }
 
 // GenerateCSS generates the CSS links for the given chunk.
@@ -154,10 +156,10 @@ func (m Manifest) GeneratePreloadModules(name string) string {
 		}
 
 		if chunk.File != "" {
-			sb.WriteString(`<script type="preloadmodule" src="`)
+			sb.WriteString(`<link rel="modulepreload" href="`)
 			sb.WriteString("/")
 			sb.WriteString(chunk.File)
-			sb.WriteString(`"></script>`)
+			sb.WriteString(`">`)
 		}
 
 		for _, imp := range chunk.Imports {
