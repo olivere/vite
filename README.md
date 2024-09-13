@@ -15,7 +15,8 @@ We setup the helper function, and then pass it to your HTML template.
 viteFragment, err := vite.HTMLFragment(vite.Config{
     FS:      os.DirFS("frontend/dist"),
     IsDev:   *isDev,
-    ViteURL: "http://localhost:5173",
+    ViteURL: "http://localhost:5173", // optional: defaults to this
+    ViteEntry: "src/main.js", // reccomended as highly dependent on your app
 })
 if err != nil {
     panic(err)
@@ -104,6 +105,7 @@ v, err := vite.NewHandler(vite.Config{
     IsDev:    true,
     PublicFS: os.DirFS("./frontend/public"), // optional: we use the "public" directory under "FS" by default
     ViteURL:  "http://localhost:5173",       // optional: we use "http://localhost:5173" by default
+    ViteEntry: "src/main.js" // reccomended as highly dependent on your app
 })
 if err != nil { ... }
 ```
@@ -132,6 +134,17 @@ v, err := vite.NewHandler(vite.Config{
 if err != nil { ... }
 ```
 
+## Configuration
+
+| Field        | Type                                                                            | Description                                                                                                                                                             | Useful Default                  |
+|--------------|---------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| IsDev        | bool                                                                            | Instruct whether to link to dev Vite server or built assets in 'prod'                                                                                                   | `false`                         |
+| FS           | fs.FS                                                                           | FS containing the Vite assets (and manifest)                                                                                                                            |                                 |
+| ViteEntry    | string                                                                          | Entrypoint for the Vite application. Usually a main Javascript file. This is the top of the dependency tree and Vite will import dependencies based on this entrypoint. | `src/main.tsx`                  |
+| ViteURL      | string                                                                          | Local URL for the Vite development server. Not used in production mode.                                                                                                 | `http://localhost:5173`         |
+| ViteManifest | string                                                                          | File path of the manifest file (relative to FS). Only used in production mode.                                                                                          | `.vite/manifest.json`           |
+| ViteTemplate | [Scaffolding](https://github.com/olivere/vite/blob/main/config.go#L53C6-L53C17) | A enum-like type that instruct this library what preambles to inject based on what project type (React, Vue etc). Needed for React applications to enable HMR etc.      | React (includes React preamble) |
+| PublicFS     | fs.FS                                                                           | Only used with the vite.NewHandler usage to serve the public directory for you. Not used when this library is used as a helper template function.                       |                                 |
 ## Examples
 
 ### Simple Helper Function 
