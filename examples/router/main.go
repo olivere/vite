@@ -21,9 +21,7 @@ var dist embed.FS
 var public embed.FS
 
 func main() {
-	var (
-		isDev = flag.Bool("dev", false, "run in development mode")
-	)
+	isDev := flag.Bool("dev", false, "run in development mode")
 	flag.Parse()
 
 	mux := http.NewServeMux()
@@ -38,7 +36,12 @@ func main() {
 			log.Fatalf("creating sub-filesystem for 'dist' directory: %v", err)
 		}
 		appFS = distFS
-		publicFS = public
+
+		publicSub, err := fs.Sub(public, "public")
+		if err != nil {
+			log.Fatalf("creating sub-filesystem for 'public' directory: %v", err)
+		}
+		publicFS = publicSub
 	}
 
 	// Register the endpoints that get served by the backend.
