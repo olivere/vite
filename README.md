@@ -33,7 +33,7 @@ http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusInternalServerError)
     }
 }
-  
+
 indexTemplate := `
 <head>
     <meta charset="UTF-8" />
@@ -47,17 +47,21 @@ indexTemplate := `
 This example should give you an idea of how to use this in your application. It is designed to be as simple as possible and independent of your framework, you just need to specify some config and then call `viteFragment.Tags` in your template. For a full working example, see [examples](#examples)
 
 ### Serving Assets
+
 The code above only produces the HTML tags. You are responsible for serving assets as this can vary hugely depending on your framework and setup. For example, you may want to use the `public` folder in Vite, or it is often simpler to disable it. If you do use it, you need to serve its contents in dev and prod modes.
 
 You need to setup:
 
 **In production:**
+
 - Vite produces a `dist` folder, you will want to serve `dist/assets` wherever it is located in your project under the `/assets/` URL. With a default Vite config, your script tags will be looking for a resource like `/assets/main-BLC8vTVb.js`. This library produces its HTML tags based on the `dist/.vite/manifest.json` so this drives the setup.
 
 **In development**
-- The Vite web server (normally running at `http://localhost:5173`) serves `js` and `css` assets for you so you do **not** need to worry about serving those. However, if you have assets like `svg`, images etc **that you are importing** into your Javascript app, you need to serve these in development yourself. You are also responsible for serving the `public` folder in dev and prod. (It's simpler to [disable](https://v2.vitejs.dev/config/#publicdir) this folder, its use case is not primarily for apps with a backend like Go). 
+
+- The Vite web server (normally running at `http://localhost:5173`) serves `js` and `css` assets for you so you do **not** need to worry about serving those. However, if you have assets like `svg`, images etc **that you are importing** into your Javascript app, you need to serve these in development yourself. You are also responsible for serving the `public` folder in dev and prod. (It's simpler to [disable](https://v2.vitejs.dev/config/#publicdir) this folder, its use case is not primarily for apps with a backend like Go).
 
 A simple example of serving the assets using `net/http` would be:
+
 ```golang
 if *isDev {
     serverStaticFolder(mux, "/src/assets/", os.DirFS("frontend/src/assets"))
@@ -66,29 +70,34 @@ if *isDev {
 }
 
 func serverStaticFolder(mux *http.ServeMux, path string, fs fs.FS) {
-	mux.Handle(path, http.StripPrefix(path, http.FileServerFS(fs)))
+    mux.Handle(path, http.StripPrefix(path, http.FileServerFS(fs)))
 }
 ```
 
 If you are using a framework like [Echo](https://echo.labstack.com/) then it provides [this functionality already](https://echo.labstack.com/docs/static-files#using-echostatic).
 
 ### Running your app
+
 For development mode:
 
 You need to run Vite with something like `npm run dev`, `pnpm dev` etc.
 
 It is probably best to setup a flag in your go app to swap between dev and prod modes, which is easy with `flag` from the standard library.
+
 ```golang
 var isDev = flag.Bool("dev", false, "run in development mode")
 flag.Parse()
 ```
+
 Then in a separate shell from Vite, you can run `go run main.go -dev` to start the app.
 
 In production *mode* it's easier:
+
+```sh
+npm run build
+go run main.go
 ```
-$ npm run build
-$ go run main.go
-```
+
 ## Usage with the provided Handler
 
 This integration is done by a HTTP handler, implementing `http.Handler`. The handler has two modes: Development and production.
@@ -145,9 +154,10 @@ if err != nil { ... }
 | ViteManifest | string                                                                          | File path of the manifest file (relative to FS). Only used in production mode.                                                                                          | `.vite/manifest.json`           |
 | ViteTemplate | [Scaffolding](https://github.com/olivere/vite/blob/main/config.go#L53C6-L53C17) | A enum-like type that instruct this library what preambles to inject based on what project type (React, Vue etc). Needed for React applications to enable HMR etc.      | React (includes React preamble) |
 | PublicFS     | fs.FS                                                                           | Only used with the vite.NewHandler usage to serve the public directory for you. Not used when this library is used as a helper template function.                       |                                 |
+
 ## Examples
 
-### Simple Helper Function 
+### Simple Helper Function
 
 See the [`examples/helper-function-basic` directory](https://github.com/olivere/vite/tree/main/examples/helper-function-basic) for a demonstration of a very basic React app that integrates a Go backend.
 
@@ -166,6 +176,10 @@ For Vite apps that have multiple entry points, you can pass the entry point by c
 ### Template Registration
 
 You can use custom HTML templates in your Go backend for serving different React pages. See the [`examples/template-registry` directory](https://github.com/olivere/vite/tree/main/examples/template-registry) for an example.
+
+### Router App
+
+This application consists of a Go backend, serving a Vite-based app using TanStack Router and TanStack Query libraries. See the the [`examples/router` directory](https://github.com/olivere/vite/tree/main/examples/router).
 
 ## License
 

@@ -16,8 +16,10 @@ import (
 //go:embed all:dist
 var dist embed.FS
 
+/*
 //go:embed all:public
 var public embed.FS
+*/
 
 func main() {
 	var (
@@ -84,7 +86,7 @@ func runDevServer() {
 func runProdServer() {
 	distFS, err := fs.Sub(dist, "dist")
 	if err != nil {
-		panic(fmt.Errorf("creating sub-filesystem for 'dist' directory: %w\n", err))
+		panic(fmt.Errorf("creating sub-filesystem for 'dist' directory: %w", err))
 	}
 
 	mux := http.NewServeMux()
