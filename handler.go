@@ -243,9 +243,10 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 				return
 			}
 		}
-		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src))
-		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src))
-		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src))
+		assetsPrefix := ""
+		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src, assetsPrefix))
+		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src, assetsPrefix))
+		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src, assetsPrefix))
 	}
 
 	var tmplName string
