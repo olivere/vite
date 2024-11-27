@@ -83,7 +83,7 @@ func PluginReactPreamble(server string) string {
 // GenerateCSS generates the CSS links for the given chunk.
 //
 // The name is the name of the source file, e.g. "src/main.tsx".
-func (m Manifest) GenerateCSS(name string) string {
+func (m Manifest) GenerateCSS(name, prefix string) string {
 	var sb strings.Builder
 	seen := make(map[string]bool)
 
@@ -101,6 +101,7 @@ func (m Manifest) GenerateCSS(name string) string {
 
 		for _, css := range chunk.CSS {
 			sb.WriteString(`<link rel="stylesheet" href="`)
+			sb.WriteString(prefix)
 			sb.WriteString("/")
 			sb.WriteString(css)
 			sb.WriteString(`">`)
@@ -119,7 +120,7 @@ func (m Manifest) GenerateCSS(name string) string {
 // GenerateModules generates the module scripts for the given chunk.
 //
 // The name is the name of the source file, e.g. "src/main.tsx".
-func (m Manifest) GenerateModules(name string) string {
+func (m Manifest) GenerateModules(name, prefix string) string {
 	chunk, ok := m[name]
 	if !ok {
 		return ""
@@ -128,6 +129,7 @@ func (m Manifest) GenerateModules(name string) string {
 	var sb strings.Builder
 	if chunk.File != "" {
 		sb.WriteString(`<script type="module" src="`)
+		sb.WriteString(prefix)
 		sb.WriteString("/")
 		sb.WriteString(chunk.File)
 		sb.WriteString(`"></script>`)
@@ -139,7 +141,7 @@ func (m Manifest) GenerateModules(name string) string {
 // GeneratePreloadModules generates the preload modules for the given chunk.
 //
 // The name is the name of the source file, e.g. "src/main.tsx".
-func (m Manifest) GeneratePreloadModules(name string) string {
+func (m Manifest) GeneratePreloadModules(name, prefix string) string {
 	var sb strings.Builder
 	seen := make(map[string]bool)
 
@@ -157,6 +159,7 @@ func (m Manifest) GeneratePreloadModules(name string) string {
 
 		if chunk.File != "" {
 			sb.WriteString(`<link rel="modulepreload" href="`)
+			sb.WriteString(prefix)
 			sb.WriteString("/")
 			sb.WriteString(chunk.File)
 			sb.WriteString(`">`)
