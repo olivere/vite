@@ -23,7 +23,7 @@ type Handler struct {
 	viteEntry       string
 	viteURL         string
 	viteTemplate    Scaffolding
-	AssetsURLPrefix string
+	assetsURLPrefix string
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
 }
@@ -47,7 +47,7 @@ func NewHandler(config Config) (*Handler, error) {
 		viteEntry:       config.ViteEntry,
 		viteURL:         config.ViteURL,
 		viteTemplate:    config.ViteTemplate,
-		AssetsURLPrefix: config.AssetsURLPrefix,
+		assetsURLPrefix: config.AssetsURLPrefix,
 		templates:       make(map[string]*template.Template),
 	}
 
@@ -246,9 +246,9 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 			}
 		}
 
-		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src, h.AssetsURLPrefix))
-		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src, h.AssetsURLPrefix))
-		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src, h.AssetsURLPrefix))
+		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src, h.assetsURLPrefix))
+		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src, h.assetsURLPrefix))
+		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src, h.assetsURLPrefix))
 	}
 
 	var tmplName string
