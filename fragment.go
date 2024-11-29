@@ -97,9 +97,9 @@ func HTMLFragment(config Config) (*Fragment, error) {
 			return nil, fmt.Errorf("vite: unable to find chunk for entry point %q", pd.ViteEntry)
 		}
 
-		pd.StyleSheets = template.HTML(m.GenerateCSS(chunk.Src, config.AssetsPrefix))
-		pd.Modules = template.HTML(m.GenerateModules(chunk.Src, config.AssetsPrefix))
-		pd.PreloadModules = template.HTML(m.GeneratePreloadModules(chunk.Src, config.AssetsPrefix))
+		pd.StyleSheets = template.HTML(m.GenerateCSS(chunk.Src, config.AssetsURLPrefix))
+		pd.Modules = template.HTML(m.GenerateModules(chunk.Src, config.AssetsURLPrefix))
+		pd.PreloadModules = template.HTML(m.GeneratePreloadModules(chunk.Src, config.AssetsURLPrefix))
 	}
 
 	// Create a buffer to store the executed template output

@@ -23,6 +23,7 @@ type Handler struct {
 	viteEntry       string
 	viteURL         string
 	viteTemplate    Scaffolding
+	AssetsURLPrefix string
 	templates       map[string]*template.Template
 	defaultMetadata *Metadata
 }
@@ -39,14 +40,15 @@ func NewHandler(config Config) (*Handler, error) {
 	}
 
 	h := &Handler{
-		fs:           config.FS,
-		fsFS:         http.FS(config.FS),
-		fsHandler:    http.FileServerFS(config.FS),
-		isDev:        config.IsDev,
-		viteEntry:    config.ViteEntry,
-		viteURL:      config.ViteURL,
-		viteTemplate: config.ViteTemplate,
-		templates:    make(map[string]*template.Template),
+		fs:              config.FS,
+		fsFS:            http.FS(config.FS),
+		fsHandler:       http.FileServerFS(config.FS),
+		isDev:           config.IsDev,
+		viteEntry:       config.ViteEntry,
+		viteURL:         config.ViteURL,
+		viteTemplate:    config.ViteTemplate,
+		AssetsURLPrefix: config.AssetsURLPrefix,
+		templates:       make(map[string]*template.Template),
 	}
 
 	// We register a fallback template.
@@ -243,10 +245,10 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 				return
 			}
 		}
-		assetsPrefix := ""
-		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src, assetsPrefix))
-		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src, assetsPrefix))
-		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src, assetsPrefix))
+
+		page.StyleSheets = template.HTML(h.manifest.GenerateCSS(chunk.Src, h.AssetsURLPrefix))
+		page.Modules = template.HTML(h.manifest.GenerateModules(chunk.Src, h.AssetsURLPrefix))
+		page.PreloadModules = template.HTML(h.manifest.GeneratePreloadModules(chunk.Src, h.AssetsURLPrefix))
 	}
 
 	var tmplName string
