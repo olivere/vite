@@ -1,8 +1,5 @@
 # Vite Backend integration with Go
 
-> [!WARNING]
-> This library is still a work in progress and may not be stable or fully functional. Use it at your own risk.
-
 This library facilitates the integration of a Vite-based frontend with a Go-based backend, following the guidelines outlined in the [Vite backend integration guide](https://vitejs.dev/guide/backend-integration.html).
 
 > [!NOTE]

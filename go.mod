@@ -1,3 +1,3 @@
 module github.com/olivere/vite
 
-go 1.22.3
+go 1.24

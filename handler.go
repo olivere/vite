@@ -190,13 +190,7 @@ func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, path string
 		ViteURL:   h.viteURL,
 	}
 
-	// Inject metadata in// Check if the specified Vite template requires a preamble and set the
-	// corresponding preamble string in the plugin configuration.
-	//
-	// If the Vite template value is less than 1, it is considered as an
-	// uninitialized state, and the default React preamble is applied.
-	// Otherwise, if the template requires a preamble, it uses the
-	// specific preamble for the given Vite template.to the page.
+	// Inject metadata in the page.
 	ctx := r.Context()
 	md := MetadataFromContext(ctx)
 	if md == nil {
