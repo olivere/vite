@@ -44,6 +44,18 @@ type Config struct {
 	//
 	// [Scaffolding Your First Vite Project]: https://vitejs.dev/guide/#scaffolding-your-first-vite-project
 	ViteTemplate Scaffolding
+
+	// AssetsURLPrefix is the URL prefix for serving asset files, such as JavaScript,
+	// CSS, and other static resources. This is used only in production mode to
+	// construct the paths for assets based on the Vite manifest. It is useful
+	// when you have multiple builds served from different base paths, such as
+	// "example.com/admin/assets" for an admin panel and "example.com/assets" for
+	// the main application.
+	//
+	// In development mode, the `ViteURL` parameter defines the base URL for assets,
+	// making this parameter unnecessary.
+	// If not specified, the default prefix is "".
+	AssetsURLPrefix string
 }
 
 // Scaffolding represents various templates provided by Vite that can be used

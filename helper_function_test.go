@@ -207,3 +207,34 @@ func TestDevModeFragmentWorksWithTrailingSlash(t *testing.T) {
 		t.Fatalf("Generated HTML block does not contain: %s", viteClientTag)
 	}
 }
+
+func TestAssetsURLPrefixInProduction(t *testing.T) {
+	const assetsURLPrefix = "/custom-prefix"
+	const entrypoint = "views/foo.js"
+
+	viteFragment, err := vite.HTMLFragment(vite.Config{
+		FS:              getTestFS(),
+		IsDev:           false,
+		ViteEntry:       entrypoint,
+		AssetsURLPrefix: assetsURLPrefix,
+	})
+
+	if err != nil {
+		t.Fatal("Unable to produce Vite HTML Fragment", err)
+	}
+
+	generatedHTML := string(viteFragment.Tags)
+
+	expectedTags := []string{
+		`<link rel="stylesheet" href="/custom-prefix/assets/foo-5UjPuW-k.css">`,
+		`<link rel="stylesheet" href="/custom-prefix/assets/shared-ChJ_j-JJ.css">`,
+		`<script type="module" src="/custom-prefix/assets/foo-BRBmoGS9.js"></script>`,
+		`<link rel="modulepreload" href="/custom-prefix/assets/shared-B7PI925R.js">`,
+	}
+
+	for _, tag := range expectedTags {
+		if !strings.Contains(generatedHTML, tag) {
+			t.Fatalf("Generated HTML block does not contain expected tag: %s\nGenerated HTML: %s", tag, generatedHTML)
+		}
+	}
+}

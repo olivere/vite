@@ -1,0 +1,33 @@
+{
+  "name": "admin-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/eslint-plugin": "1.1.10",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.14.0",
+    "eslint-plugin-vue": "^9.30.0",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
+    "vite": "^6.0.1",
+    "vite-plugin-vue-devtools": "^7.6.5",
+    "vitest": "^2.1.5"
+  }
+}
