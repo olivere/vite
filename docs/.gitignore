@@ -1,0 +1,4 @@
+node_modules
+docs
+.vitepress
+!.vitepress/config.mts
