@@ -1,6 +1,6 @@
 # Vite Backend integration with Go
 
-This library facilitates the integration of a Vite-based frontend with a Go-based backend, following the guidelines outlined in the [Vite backend integration guide](https://vitejs.dev/guide/backend-integration.html).
+This library facilitates the integration of a [Vite-based frontend with a Go-based backend](https://olivere.github.io/vite/), following the guidelines outlined in the [Vite backend integration guide](https://vitejs.dev/guide/backend-integration.html).
 
 > [!NOTE]
 > Please follow the [Vite guidelines](https://vitejs.dev/guide/backend-integration.html) to configure your Vite-based frontend, i.e. `vite.config.(js|ts)`. E.g. you need to make sure that the `manifest.json` is being generated for production.
