@@ -2,9 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
 
@@ -19,4 +19,4 @@ jobs:
         go-version: 'stable'
 
     - name: Test
-      run: go test -v .
+      run: go test -v ./...
