@@ -19,20 +19,24 @@ This library offers two approaches:
 ## Prerequisites
 
 Before using this library, ensure your Vite frontend is configured correctly:
-::: warning IMPORTANT
-- Follow the [Vite backend integration guidelines](https://vitejs.dev/guide/backend-integration.html) to configure your `vite.config.(js|ts)` file to generate the `manifest.json` for production.
-:::
 
+::: warning IMPORTANT
+
+- Follow the [Vite backend integration guidelines](https://vitejs.dev/guide/backend-integration.html) to configure your `vite.config.(js|ts)` file to generate the `manifest.json` for production.
+
+:::
 
 ## Quick Start
 
 ```bash
-$ go get github.com/olivere/vite
+go get github.com/olivere/vite
 ```
 
 
 ## Supported frameworks
+
 This library works with all major Vite-supported frontend frameworks:
+
 - React (with TypeScript and SWC options)
 - Vue
 - Vanilla JS/TS
@@ -42,14 +46,11 @@ This library works with all major Vite-supported frontend frameworks:
 - Solid
 - Qwik
 
-
 ## Usage
 
 - [Helper Function](/guide/usage#option-1-helper-function)
 - [HTTP Handler](/guide/usage#option-2-http-handler)
 - [Configuration](/guide/usage#configuration-options)
-        
-
 
 ## Examples
 
@@ -58,4 +59,3 @@ See the [examples](/guide/examples) page.
 ## License
 
 This project is licensed under the terms specified in the [LICENSE](https://raw.githubusercontent.com/olivere/vite/refs/heads/main/LICENSE) file.
-

@@ -3,7 +3,7 @@ prev:
   text: 'Usage'
   link: '/guide/usage'
 
-next: false  
+next: false
 ---
 
 # Examples

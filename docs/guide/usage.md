@@ -68,6 +68,7 @@ indexTemplate := `
 With the helper function approach, you need to serve assets yourself:
 
 ::: warning Asset Serving Requirements
+
 #### Development Mode
 
 - The Vite dev server handles JS and CSS assets
@@ -104,9 +105,11 @@ func serveStaticFolder(mux *http.ServeMux, path string, fs fs.FS) {
 ::: tip FRAMEWORK INTEGRATION
 Many Go web frameworks provide simplified methods for serving static files.
 For example, with Echo:
+
 ```go
 e.Static("/assets", "frontend/dist/assets")
 ```
+
 :::
 
 ## Option 2: HTTP Handler
@@ -136,11 +139,13 @@ http.Handle("/", handler)
 
 ::: warning DEV SERVER REQUIREMENT
 In development mode, you still need to run the Vite dev server separately:
+
 ```bash
 # In a separate terminal
 cd frontend
 npm run dev
 ```
+
 :::
 
 ### Production Mode
@@ -177,32 +182,41 @@ http.Handle("/", handler)
 ## Running Your Application
 
 ::: details Development Workflow
+
 1. Run the Vite dev server:
+
    ```bash
    cd frontend
    npm run dev
    ```
 
 2. Run your Go application with development mode enabled:
+
    ```bash
    go run main.go -dev
    ```
+
 :::
 
 ::: details Production Workflow
+
 1. Build your Vite application:
+
    ```bash
    cd frontend
    npm run build
    ```
 
 2. Run your Go application in production mode:
+
    ```bash
    go run main.go
    ```
+
 :::
 
 ## Configuration Options
+
 A complete list of all configuration parameters for the `vite.Config`.
 
 | Field | Type | Description | Required | Default Value |
@@ -262,11 +276,15 @@ The `ViteTemplate` field accepts a `Scaffolding` enum with the following values:
 ### Additional Notes
 
 ::: tip
+
 - React-based templates (React, ReactTs, ReactSwc, ReactSwcTs) require a preamble for Hot Module Replacement (HMR) to work properly in development mode.
 - The `PublicFS` field is optional. If not provided, the system will check if the "public" directory exists in the Vite app and serve files from there.
+
 :::
 
 ::: warning
+
 - In development mode, the `ViteURL` parameter defines the base URL for assets, making the `AssetsURLPrefix` parameter unnecessary.
 - The manifest file is used in production mode to map original file paths to transformed file paths.
+
 :::
