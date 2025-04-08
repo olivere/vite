@@ -50,6 +50,11 @@ func HTMLFragment(config Config) (*Fragment, error) {
 	}
 
 	if config.IsDev {
+		// Development mode.
+		if pd.ViteURL == "" {
+			pd.ViteURL = "http://localhost:5173"
+		}
+
 		// Check if the specified Vite template requires a preamble and set the
 		// corresponding preamble string in the plugin configuration.
 		//
@@ -58,14 +63,9 @@ func HTMLFragment(config Config) (*Fragment, error) {
 		// Otherwise, if the template requires a preamble, it uses the
 		// specific preamble for the given Vite template.
 		if config.ViteTemplate < 1 {
-			pd.PluginReactPreamble = template.HTML(React.Preamble(config.ViteURL))
+			pd.PluginReactPreamble = template.HTML(React.Preamble(pd.ViteURL))
 		} else if config.ViteTemplate.RequiresPreamble() {
-			pd.PluginReactPreamble = template.HTML(config.ViteTemplate.Preamble(config.ViteURL))
-		}
-
-		// Development mode.
-		if pd.ViteURL == "" {
-			pd.ViteURL = "http://localhost:5173"
+			pd.PluginReactPreamble = template.HTML(config.ViteTemplate.Preamble(pd.ViteURL))
 		}
 	} else {
 		if config.ViteManifest == "" {
